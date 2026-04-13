@@ -1,0 +1,8 @@
+{
+  "appId": "com.pixouparcela.v2",
+  "appName": "Pix ou Parcela?",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  }
+}

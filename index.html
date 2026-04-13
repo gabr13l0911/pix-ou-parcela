@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#f0f0f3">
+  <meta name="description" content="Calculadora financeira: descubra se vale mais pagar no Pix ou parcelar.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <title>Pix ou Parcela?</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header class="header">
+      <h1 class="logo">Pix <span class="logo-ou">ou</span> Parcela<span class="logo-q">?</span></h1>
+      <div class="header-actions">
+        <button id="btn-history" class="icon-btn" title="Histórico" aria-label="Histórico">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/><path d="M1 4v5h5"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+        </button>
+        <button id="btn-settings" class="icon-btn" title="Configurações" aria-label="Configurações">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Calculator -->
+    <main class="calculator" id="calculator-view">
+      <!-- Valor da compra parcelada -->
+      <div class="input-group">
+        <label for="valor-compra">Valor da compra parcelada</label>
+        <div class="input-currency">
+          <span class="prefix">R$</span>
+          <input type="text" id="valor-compra" inputmode="decimal" placeholder="0,00" autofocus autocomplete="off">
+        </div>
+      </div>
+
+      <!-- Modo de entrada Pix -->
+      <div class="input-group">
+        <label>Como informar o valor no Pix?</label>
+        <div class="toggle-switch toggle-pix-mode" id="toggle-pix-mode">
+          <button class="toggle-opt active" data-mode="percent">% de desconto</button>
+          <button class="toggle-opt" data-mode="valor-pix">Valor em R$</button>
+        </div>
+      </div>
+
+      <!-- Desconto Pix (%) -->
+      <div class="input-group" id="grupo-desconto">
+        <label for="desconto">Desconto no Pix/Boleto</label>
+        <div class="input-with-toggle">
+          <input type="text" id="desconto" inputmode="decimal" placeholder="0" autocomplete="off">
+          <div class="toggle-switch" id="toggle-desconto">
+            <button class="toggle-opt active" data-mode="percent">%</button>
+            <button class="toggle-opt" data-mode="reais">R$</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Valor Pix direto (R$) -->
+      <div class="input-group hidden" id="grupo-valor-pix">
+        <label for="valor-pix-input">Valor no Pix/Boleto</label>
+        <div class="input-currency">
+          <span class="prefix">R$</span>
+          <input type="text" id="valor-pix-input" inputmode="decimal" placeholder="0,00" autocomplete="off">
+        </div>
+      </div>
+
+      <!-- Parcelas -->
+      <div class="input-group">
+        <label>Parcelas sem juros</label>
+        <div class="parcelas-grid">
+          <button class="parcela-btn" data-parcelas="2">2x</button>
+          <button class="parcela-btn" data-parcelas="3">3x</button>
+          <button class="parcela-btn active" data-parcelas="6">6x</button>
+          <button class="parcela-btn" data-parcelas="10">10x</button>
+          <button class="parcela-btn" data-parcelas="12">12x</button>
+          <button class="parcela-btn custom-parcela" data-parcelas="custom">
+            <input type="text" id="parcelas-custom" inputmode="numeric" placeholder="Nx" maxlength="3" autocomplete="off">
+          </button>
+        </div>
+      </div>
+
+      <!-- Taxa de referência -->
+      <div class="taxa-info" id="taxa-info">
+        <span class="taxa-label">Taxa mensal (CDI):</span>
+        <span class="taxa-valor" id="taxa-display">--</span>
+        <span class="taxa-fonte" id="taxa-fonte"></span>
+      </div>
+
+      <!-- Botão Calcular -->
+      <button class="btn-calcular" id="btn-calcular">Comparar</button>
+
+      <!-- Resultado -->
+      <div class="resultado hidden" id="resultado">
+        <div class="resultado-veredito" id="resultado-veredito">
+          <span class="veredito-icon" id="veredito-icon"></span>
+          <h2 class="veredito-texto" id="veredito-texto"></h2>
+        </div>
+
+        <div class="resultado-detalhes">
+          <div class="detalhe-card" id="card-pix">
+            <div class="detalhe-titulo">Pix/Boleto</div>
+            <div class="detalhe-valor" id="valor-pix">R$ 0,00</div>
+            <div class="detalhe-sub" id="sub-pix"></div>
+          </div>
+          <div class="detalhe-vs">vs</div>
+          <div class="detalhe-card" id="card-parcela">
+            <div class="detalhe-titulo">Parcelado</div>
+            <div class="detalhe-valor" id="valor-parcela">R$ 0,00</div>
+            <div class="detalhe-sub" id="sub-parcela"></div>
+          </div>
+        </div>
+
+        <!-- Barra visual -->
+        <div class="barra-comparacao">
+          <div class="barra-item">
+            <div class="barra-label">Custo real Pix</div>
+            <div class="barra-track">
+              <div class="barra-fill barra-pix" id="barra-pix"></div>
+            </div>
+          </div>
+          <div class="barra-item">
+            <div class="barra-label">Custo real Parcela</div>
+            <div class="barra-track">
+              <div class="barra-fill barra-parcela" id="barra-parcela"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="economia" id="economia"></div>
+
+        <!-- Memória de cálculo -->
+        <details class="memoria-calculo" id="memoria-calculo">
+          <summary>Como chegamos nesse resultado?</summary>
+          <div class="memoria-body" id="memoria-body"></div>
+        </details>
+      </div>
+    </main>
+
+    <!-- Settings Panel -->
+    <div class="panel hidden" id="settings-view">
+      <div class="panel-header">
+        <button class="btn-back" id="btn-back-settings" aria-label="Voltar">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </button>
+        <h2>Configurações</h2>
+      </div>
+      <div class="panel-body">
+        <div class="setting-item">
+          <label class="setting-label">Fonte da taxa de referência</label>
+          <div class="setting-options">
+            <label class="radio-option">
+              <input type="radio" name="taxa-fonte" value="auto" checked>
+              <span>Automática (CDI via Banco Central)</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="taxa-fonte" value="custom">
+              <span>Taxa personalizada</span>
+            </label>
+          </div>
+        </div>
+        <div class="setting-item hidden" id="custom-taxa-group">
+          <label for="custom-taxa" class="setting-label">Taxa mensal de rendimento (%)</label>
+          <div class="input-currency small">
+            <input type="text" id="custom-taxa" inputmode="decimal" placeholder="0,00" autocomplete="off">
+            <span class="suffix">% a.m.</span>
+          </div>
+          <p class="setting-hint">Ex: CDB 110% CDI, Tesouro Selic, etc.</p>
+        </div>
+        <div class="setting-item">
+          <label class="setting-label">Parcelas padrão</label>
+          <select id="parcelas-padrao">
+            <option value="2">2x</option>
+            <option value="3">3x</option>
+            <option value="6" selected>6x</option>
+            <option value="10">10x</option>
+            <option value="12">12x</option>
+          </select>
+        </div>
+        <button class="btn-salvar" id="btn-salvar-settings">Salvar Configurações</button>
+      </div>
+    </div>
+
+    <!-- History Panel -->
+    <div class="panel hidden" id="history-view">
+      <div class="panel-header">
+        <button class="btn-back" id="btn-back-history" aria-label="Voltar">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </button>
+        <h2>Histórico</h2>
+        <button class="btn-export" id="btn-export-csv" title="Exportar CSV">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          CSV
+        </button>
+      </div>
+      <div class="panel-body">
+        <div id="history-list" class="history-list">
+          <p class="empty-state">Nenhuma consulta realizada ainda.</p>
+        </div>
+        <button class="btn-limpar-hist hidden" id="btn-limpar-hist">Limpar Histórico</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/calc.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+  </script>
+</body>
+</html>

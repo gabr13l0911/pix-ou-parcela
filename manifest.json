@@ -1,0 +1,15 @@
+{
+  "name": "Pix ou Parcela?",
+  "short_name": "PixOuParcela",
+  "description": "Calculadora financeira: descubra se vale mais pagar no Pix ou parcelar.",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#f0f0f3",
+  "theme_color": "#f0f0f3",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
