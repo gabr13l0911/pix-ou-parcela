@@ -38,8 +38,9 @@
         <label for="valor-compra">Valor da compra parcelada</label>
         <div class="input-currency">
           <span class="prefix">R$</span>
-          <input type="text" id="valor-compra" inputmode="decimal" placeholder="0,00" autofocus autocomplete="off">
+          <input type="text" id="valor-compra" inputmode="decimal" placeholder="0,00" autofocus autocomplete="off" aria-describedby="err-valor-compra">
         </div>
+        <p class="field-error" id="err-valor-compra" role="alert" aria-live="polite"></p>
       </div>
 
       <!-- Modo de entrada Pix -->
@@ -55,12 +56,13 @@
       <div class="input-group" id="grupo-desconto">
         <label for="desconto">Desconto no Pix/Boleto</label>
         <div class="input-with-toggle">
-          <input type="text" id="desconto" inputmode="decimal" placeholder="0" autocomplete="off">
+          <input type="text" id="desconto" inputmode="decimal" placeholder="0" autocomplete="off" aria-describedby="err-desconto">
           <div class="toggle-switch" id="toggle-desconto">
             <button class="toggle-opt active" data-mode="percent">%</button>
             <button class="toggle-opt" data-mode="reais">R$</button>
           </div>
         </div>
+        <p class="field-error" id="err-desconto" role="alert" aria-live="polite"></p>
       </div>
 
       <!-- Valor Pix direto (R$) -->
@@ -68,8 +70,9 @@
         <label for="valor-pix-input">Valor no Pix/Boleto</label>
         <div class="input-currency">
           <span class="prefix">R$</span>
-          <input type="text" id="valor-pix-input" inputmode="decimal" placeholder="0,00" autocomplete="off">
+          <input type="text" id="valor-pix-input" inputmode="decimal" placeholder="0,00" autocomplete="off" aria-describedby="err-valor-pix">
         </div>
+        <p class="field-error" id="err-valor-pix" role="alert" aria-live="polite"></p>
       </div>
 
       <!-- Parcelas -->
@@ -82,13 +85,13 @@
           <button class="parcela-btn" data-parcelas="10">10x</button>
           <button class="parcela-btn" data-parcelas="12">12x</button>
           <button class="parcela-btn custom-parcela" data-parcelas="custom">
-            <input type="text" id="parcelas-custom" inputmode="numeric" placeholder="Nx" maxlength="3" autocomplete="off">
+            <input type="text" id="parcelas-custom" inputmode="numeric" placeholder="Nx" maxlength="3" autocomplete="off" aria-label="Número de parcelas personalizado">
           </button>
         </div>
       </div>
 
       <!-- Taxa de referência -->
-      <div class="taxa-info" id="taxa-info">
+      <div class="taxa-info" id="taxa-info" aria-live="polite">
         <span class="taxa-label">Taxa mensal (CDI):</span>
         <span class="taxa-valor" id="taxa-display">--</span>
         <span class="taxa-fonte" id="taxa-fonte"></span>
@@ -145,12 +148,12 @@
     </main>
 
     <!-- Settings Panel -->
-    <div class="panel hidden" id="settings-view">
+    <div class="panel hidden" id="settings-view" role="dialog" aria-modal="true" aria-labelledby="settings-title" aria-hidden="true">
       <div class="panel-header">
         <button class="btn-back" id="btn-back-settings" aria-label="Voltar">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
         </button>
-        <h2>Configurações</h2>
+        <h2 id="settings-title">Configurações</h2>
       </div>
       <div class="panel-body">
         <div class="setting-item">
@@ -189,12 +192,12 @@
     </div>
 
     <!-- History Panel -->
-    <div class="panel hidden" id="history-view">
+    <div class="panel hidden" id="history-view" role="dialog" aria-modal="true" aria-labelledby="history-title" aria-hidden="true">
       <div class="panel-header">
         <button class="btn-back" id="btn-back-history" aria-label="Voltar">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
         </button>
-        <h2>Histórico</h2>
+        <h2 id="history-title">Histórico</h2>
         <button class="btn-export" id="btn-export-csv" title="Exportar CSV">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           CSV

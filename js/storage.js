@@ -68,6 +68,16 @@ const Storage = (() => {
     set(KEYS.HISTORY, []);
   }
 
+  // Escapa valores CSV segundo RFC 4180: envolve em aspas e duplica aspas internas
+  // quando o valor contém o delimitador, aspas ou quebras de linha.
+  function csvEscape(value) {
+    const s = String(value == null ? '' : value);
+    if (/[;"\n\r]/.test(s)) {
+      return '"' + s.replace(/"/g, '""') + '"';
+    }
+    return s;
+  }
+
   function exportHistoryCSV() {
     const hist = getHistory();
     if (!hist.length) return null;
@@ -91,7 +101,8 @@ const Storage = (() => {
       h.pixWins ? 'Pix' : 'Parcela',
     ]);
 
-    const csvContent = [headers.join(';'), ...rows.map(r => r.join(';'))].join('\n');
+    const toLine = (arr) => arr.map(csvEscape).join(';');
+    const csvContent = [toLine(headers), ...rows.map(toLine)].join('\r\n');
     return csvContent;
   }
 

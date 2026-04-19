@@ -147,6 +147,21 @@ body {
   box-shadow: 0 0 0 3px rgba(13, 116, 206, 0.12);
 }
 
+.input-currency.input-invalid,
+.input-with-toggle.input-invalid,
+input.input-invalid {
+  border-color: var(--destructive);
+  box-shadow: 0 0 0 3px rgba(235, 142, 144, 0.18);
+}
+
+.field-error {
+  color: var(--destructive);
+  font-size: 12px;
+  margin-top: 6px;
+  font-weight: 500;
+  min-height: 0;
+}
+
 .input-currency .prefix {
   padding-left: 16px;
   font-size: 0.9rem;
@@ -342,6 +357,14 @@ body {
   color: var(--text-tertiary);
   font-size: 12px;
   margin-left: auto;
+}
+
+.taxa-fonte.is-estimate {
+  color: var(--warning);
+  font-weight: 600;
+  background: rgba(171, 100, 0, 0.08);
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
 }
 
 /* ===== CTA Button — Dark Primary Pill ===== */
