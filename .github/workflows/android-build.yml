@@ -21,6 +21,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
       - name: Setup JDK 17 (Temurin)
         uses: actions/setup-java@v4
         with:
@@ -29,6 +35,12 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
+
+      - name: Sync Capacitor web assets into Android project
+        run: |
+          npm ci
+          npm run build:web
+          npx cap sync android
 
       - name: Make gradlew executable
         run: chmod +x ${{ env.ANDROID_DIR }}/gradlew
