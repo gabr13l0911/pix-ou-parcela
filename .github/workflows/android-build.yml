@@ -1,89 +1,67 @@
-name: Android APK
+name: Release APK
 
 on:
   push:
-    branches: [master]
     tags: ['v*']
-  pull_request:
-    branches: [master]
   workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  APP_NAME: pix-ou-parcela
+  ANDROID_DIR: android
 
 jobs:
   build:
-    name: Build debug APK
+    name: Build APK and publish release
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Setup JDK 17
+      - name: Setup JDK 17 (Temurin)
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
+          distribution: temurin
           java-version: '17'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Copy web assets to www/
-        run: npm run build:web
-
-      - name: Add Android platform (if missing)
-        run: |
-          if [ ! -d "android" ]; then
-            npx cap add android
-          fi
-
-      - name: Sync Capacitor
-        run: npx cap sync android
-
-      - name: Grant execute permission to gradlew
-        run: chmod +x android/gradlew
+      - name: Make gradlew executable
+        run: chmod +x ${{ env.ANDROID_DIR }}/gradlew
 
       - name: Build debug APK
-        working-directory: android
+        working-directory: ${{ env.ANDROID_DIR }}
         run: ./gradlew assembleDebug --no-daemon
 
-      - name: Rename APK with metadata
+      - name: Rename APK
+        id: rename
         run: |
-          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
-          mv android/app/build/outputs/apk/debug/app-debug.apk \
-             android/app/build/outputs/apk/debug/pix-ou-parcela-${SHORT_SHA}-debug.apk
+          SRC=$(find ${ANDROID_DIR}/app/build/outputs/apk/debug -name "*.apk" -type f | head -n 1)
+          if [ -z "$SRC" ]; then
+            echo "::error::Nenhum APK encontrado em ${ANDROID_DIR}/app/build/outputs/apk/debug"
+            exit 1
+          fi
+          DEST="${ANDROID_DIR}/app/build/outputs/apk/debug/${APP_NAME}-${GITHUB_REF_NAME}.apk"
+          mv "$SRC" "$DEST"
+          echo "apk_path=$DEST"  >> "$GITHUB_OUTPUT"
+          echo "apk_name=${APP_NAME}-${GITHUB_REF_NAME}.apk" >> "$GITHUB_OUTPUT"
 
-      - name: Upload APK artifact
+      - name: Upload APK as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: pix-ou-parcela-debug-apk
-          path: android/app/build/outputs/apk/debug/*.apk
+          name: ${{ steps.rename.outputs.apk_name }}
+          path: ${{ steps.rename.outputs.apk_path }}
           retention-days: 30
           if-no-files-found: error
 
-  release:
-    name: Publish release on tag
-    needs: build
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
-    permissions:
-      contents: write
-    steps:
-      - name: Download APK artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: pix-ou-parcela-debug-apk
-          path: dist
-
       - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/*.apk
+          files: ${{ steps.rename.outputs.apk_path }}
+          name: ${{ github.ref_name }}
           generate_release_notes: true
