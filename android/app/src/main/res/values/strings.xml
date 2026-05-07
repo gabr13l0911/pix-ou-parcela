@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Pix ou Parcela?</string>
+    <string name="title_activity_main">Pix ou Parcela?</string>
+    <string name="package_name">com.pixouparcela.v2</string>
+    <string name="custom_url_scheme">com.pixouparcela.v2</string>
+</resources>
