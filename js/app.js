@@ -68,15 +68,45 @@
     input.value = val;
   }
 
+  // === Field error helpers ===
+  function setFieldError(inputEl, errorId, message) {
+    const errEl = document.getElementById(errorId);
+    if (!errEl) return;
+    if (message) {
+      inputEl.classList.add('input-invalid');
+      const wrapper = inputEl.closest('.input-currency, .input-with-toggle');
+      if (wrapper) wrapper.classList.add('input-invalid');
+      errEl.textContent = message;
+    } else {
+      inputEl.classList.remove('input-invalid');
+      const wrapper = inputEl.closest('.input-currency, .input-with-toggle');
+      if (wrapper) wrapper.classList.remove('input-invalid');
+      errEl.textContent = '';
+    }
+  }
+
+  function clearAllFieldErrors() {
+    setFieldError(elValorCompra, 'err-valor-compra', '');
+    setFieldError(elDesconto, 'err-desconto', '');
+    setFieldError(elValorPixInput, 'err-valor-pix', '');
+  }
+
   // === Masks ===
-  elValorCompra.addEventListener('input', () => formatInputBRL(elValorCompra));
-  elValorPixInput.addEventListener('input', () => formatInputBRL(elValorPixInput));
+  elValorCompra.addEventListener('input', () => {
+    formatInputBRL(elValorCompra);
+    setFieldError(elValorCompra, 'err-valor-compra', '');
+  });
+  elValorPixInput.addEventListener('input', () => {
+    formatInputBRL(elValorPixInput);
+    setFieldError(elValorPixInput, 'err-valor-pix', '');
+  });
   elDesconto.addEventListener('input', () => {
     if (descontoMode === 'reais') {
       formatInputBRL(elDesconto);
     } else {
       formatInputDecimal(elDesconto);
     }
+    setFieldError(elDesconto, 'err-desconto', '');
   });
 
   // === Toggle modo de entrada Pix (% desconto vs valor em R$) ===
@@ -175,6 +205,12 @@
     if (!taxaAtual) return;
     elTaxaDisplay.textContent = taxaAtual.taxaMensalPercent.toFixed(2) + '% a.m.';
     elTaxaFonte.textContent = taxaAtual.fonte || '';
+    // Badge amarelo quando estamos usando fallback/estimativa (API offline)
+    const isEstimate = taxaAtual.fonte === 'Estimativa';
+    elTaxaFonte.classList.toggle('is-estimate', isEstimate);
+    elTaxaFonte.title = isEstimate
+      ? 'Não foi possível consultar o Banco Central. Usando taxa estimada.'
+      : '';
   }
 
   // === Calcular ===
@@ -184,10 +220,11 @@
   elValorPixInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') calcular(); });
 
   function calcular() {
+    clearAllFieldErrors();
     const valorCompra = parseBRL(elValorCompra.value);
 
     if (valorCompra <= 0) {
-      toast('Digite o valor da compra parcelada');
+      setFieldError(elValorCompra, 'err-valor-compra', 'Digite o valor da compra parcelada');
       elValorCompra.focus();
       return;
     }
@@ -202,12 +239,12 @@
       // Usuário informou o valor do Pix direto em R$
       const valorPixDigitado = parseBRL(elValorPixInput.value);
       if (valorPixDigitado <= 0) {
-        toast('Digite o valor no Pix');
+        setFieldError(elValorPixInput, 'err-valor-pix', 'Digite o valor no Pix');
         elValorPixInput.focus();
         return;
       }
       if (valorPixDigitado >= valorCompra) {
-        toast('Valor no Pix deve ser menor que o parcelado');
+        setFieldError(elValorPixInput, 'err-valor-pix', 'Deve ser menor que o valor parcelado');
         elValorPixInput.focus();
         return;
       }
@@ -220,16 +257,18 @@
       isPercent = descontoMode === 'percent';
 
       if (desconto <= 0) {
-        toast('Digite o desconto');
+        setFieldError(elDesconto, 'err-desconto', 'Digite o desconto');
         elDesconto.focus();
         return;
       }
       if (isPercent && desconto >= 100) {
-        toast('Desconto não pode ser 100% ou mais');
+        setFieldError(elDesconto, 'err-desconto', 'Desconto não pode ser 100% ou mais');
+        elDesconto.focus();
         return;
       }
       if (!isPercent && desconto >= valorCompra) {
-        toast('Desconto não pode ser maior que o valor');
+        setFieldError(elDesconto, 'err-desconto', 'Desconto não pode ser maior que o valor');
+        elDesconto.focus();
         return;
       }
     }
@@ -245,8 +284,9 @@
     exibirResultado(resultado);
     exibirMemoriaCalculo(resultado);
 
-    // Salva no histórico
+    // Salva no histórico e atualiza lista caso o painel esteja aberto
     Storage.addToHistory(resultado);
+    renderHistory();
   }
 
   function exibirResultado(r) {
@@ -283,12 +323,14 @@
     elBarraPix.style.background = r.pixWins ? 'var(--text-primary)' : 'var(--border)';
     elBarraParcela.style.background = r.pixWins ? 'var(--border)' : 'var(--text-primary)';
 
-    // Economia
-    if (r.pixWins) {
-      elEconomia.innerHTML = `Economia no Pix: <strong>${formatBRL(r.economia)}</strong> em valor presente`;
-    } else {
-      elEconomia.innerHTML = `Economia parcelando: <strong>${formatBRL(r.economia)}</strong> em valor presente`;
-    }
+    // Economia (construído com DOM para evitar injeção de HTML)
+    const prefixo = r.pixWins ? 'Economia no Pix: ' : 'Economia parcelando: ';
+    elEconomia.textContent = '';
+    elEconomia.appendChild(document.createTextNode(prefixo));
+    const strong = document.createElement('strong');
+    strong.textContent = formatBRL(r.economia);
+    elEconomia.appendChild(strong);
+    elEconomia.appendChild(document.createTextNode(' em valor presente'));
 
     elResultado.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
@@ -359,22 +401,47 @@
   }
 
   // === Navegação ===
+  function openPanel(panel) {
+    panel.classList.remove('hidden');
+    panel.setAttribute('aria-hidden', 'false');
+    // foca o primeiro botão dentro do painel (ex: voltar) para acessibilidade
+    const firstBtn = panel.querySelector('button, [href], input, select');
+    if (firstBtn) setTimeout(() => firstBtn.focus(), 50);
+  }
+
+  function closePanel(panel) {
+    panel.classList.add('hidden');
+    panel.setAttribute('aria-hidden', 'true');
+  }
+
+  function closeAnyOpenPanel() {
+    if (!elSettingsView.classList.contains('hidden')) {
+      closePanel(elSettingsView);
+      return true;
+    }
+    if (!elHistoryView.classList.contains('hidden')) {
+      closePanel(elHistoryView);
+      return true;
+    }
+    return false;
+  }
+
   $('#btn-settings').addEventListener('click', () => {
     loadSettingsUI();
-    elSettingsView.classList.remove('hidden');
+    openPanel(elSettingsView);
   });
 
   $('#btn-history').addEventListener('click', () => {
     renderHistory();
-    elHistoryView.classList.remove('hidden');
+    openPanel(elHistoryView);
   });
 
-  $('#btn-back-settings').addEventListener('click', () => {
-    elSettingsView.classList.add('hidden');
-  });
+  $('#btn-back-settings').addEventListener('click', () => closePanel(elSettingsView));
+  $('#btn-back-history').addEventListener('click', () => closePanel(elHistoryView));
 
-  $('#btn-back-history').addEventListener('click', () => {
-    elHistoryView.classList.add('hidden');
+  // Esc fecha o painel aberto
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeAnyOpenPanel();
   });
 
   // === Settings ===
@@ -419,7 +486,7 @@
     });
 
     carregarTaxa();
-    elSettingsView.classList.add('hidden');
+    closePanel(elSettingsView);
     toast('Configurações salvas!');
   });
 
@@ -429,33 +496,53 @@
     const container = $('#history-list');
     const btnLimpar = $('#btn-limpar-hist');
 
+    container.textContent = '';
+
     if (!hist.length) {
-      container.innerHTML = '<p class="empty-state">Nenhuma consulta realizada ainda.</p>';
+      const empty = document.createElement('p');
+      empty.className = 'empty-state';
+      empty.textContent = 'Nenhuma consulta realizada ainda.';
+      container.appendChild(empty);
       btnLimpar.classList.add('hidden');
       return;
     }
 
     btnLimpar.classList.remove('hidden');
 
-    container.innerHTML = hist.map(h => {
+    const frag = document.createDocumentFragment();
+    hist.forEach(h => {
       const date = new Date(h.createdAt);
-      const dateStr = date.toLocaleDateString('pt-BR') + ' ' + date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-      const badge = h.pixWins ? 'pix' : 'parcela';
-      const badgeText = h.pixWins ? 'Pix' : 'Parcela';
+      const dateStr = date.toLocaleDateString('pt-BR') + ' ' +
+        date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
-      return `
-        <div class="history-entry">
-          <div class="hist-top">
-            <span class="hist-date">${dateStr}</span>
-            <span class="hist-badge ${badge}">${badgeText}</span>
-          </div>
-          <div class="hist-valor">${formatBRL(h.valorCompra)}</div>
-          <div class="hist-detalhe">
-            Desconto ${h.descontoPercent.toFixed(1)}% | ${h.numParcelas}x | Economia ${formatBRL(h.economia)}
-          </div>
-        </div>
-      `;
-    }).join('');
+      const entry = document.createElement('div');
+      entry.className = 'history-entry';
+
+      const top = document.createElement('div');
+      top.className = 'hist-top';
+      const dateEl = document.createElement('span');
+      dateEl.className = 'hist-date';
+      dateEl.textContent = dateStr;
+      const badgeEl = document.createElement('span');
+      badgeEl.className = 'hist-badge ' + (h.pixWins ? 'pix' : 'parcela');
+      badgeEl.textContent = h.pixWins ? 'Pix' : 'Parcela';
+      top.appendChild(dateEl);
+      top.appendChild(badgeEl);
+
+      const valorEl = document.createElement('div');
+      valorEl.className = 'hist-valor';
+      valorEl.textContent = formatBRL(h.valorCompra);
+
+      const detEl = document.createElement('div');
+      detEl.className = 'hist-detalhe';
+      detEl.textContent = `Desconto ${h.descontoPercent.toFixed(1)}% | ${h.numParcelas}x | Economia ${formatBRL(h.economia)}`;
+
+      entry.appendChild(top);
+      entry.appendChild(valorEl);
+      entry.appendChild(detEl);
+      frag.appendChild(entry);
+    });
+    container.appendChild(frag);
   }
 
   $('#btn-export-csv').addEventListener('click', () => {
