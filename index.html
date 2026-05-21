@@ -218,7 +218,13 @@
   <script src="js/app.js"></script>
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(() => {});
+      window.addEventListener('load', () => {
+        // Caminho relativo + scope explícito para funcionar tanto em raiz de
+        // domínio quanto em subpath (ex: gabr13l0911.github.io/pix-ou-parcela/).
+        navigator.serviceWorker
+          .register('sw.js', { scope: './' })
+          .catch((err) => console.warn('Service Worker registration failed:', err));
+      });
     }
   </script>
 </body>
