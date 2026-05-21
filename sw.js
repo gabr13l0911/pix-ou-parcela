@@ -2,22 +2,24 @@ const CACHE_NAME = 'pxp-v2';
 const RUNTIME_CACHE = 'pxp-runtime-v2';
 
 // Core assets — sempre cacheamos o essencial. Ícones e fontes são best-effort.
+// Caminhos relativos resolvem contra a localização do SW, então funcionam tanto
+// na raiz de dominio quanto em subpath (ex: gabr13l0911.github.io/pix-ou-parcela/).
 const CORE_ASSETS = [
-  '/',
-  '/index.html',
-  '/css/style.css',
-  '/js/calc.js',
-  '/js/api.js',
-  '/js/storage.js',
-  '/js/app.js',
-  '/manifest.json',
+  './',
+  'index.html',
+  'css/style.css',
+  'js/calc.js',
+  'js/api.js',
+  'js/storage.js',
+  'js/app.js',
+  'manifest.json',
 ];
 
 // Recursos opcionais: não quebram a instalação se não existirem (ex: PNGs ainda não gerados).
 const OPTIONAL_ASSETS = [
-  '/icons/icon.svg',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png',
+  'icons/icon.svg',
+  'icons/icon-192.png',
+  'icons/icon-512.png',
 ];
 
 // Install - cache all assets, tolerando falhas nos opcionais.
